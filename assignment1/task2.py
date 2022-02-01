@@ -39,7 +39,7 @@ class LogisticTrainer(BaseTrainer):
         # (task 2b)
         outputs = self.model.forward(X_batch)
         self.model.backward(X_batch, outputs, Y_batch)
-        self.model.w -= self.learning_rate*self.model.grad
+        self.model.w = self.model.w - self.learning_rate*self.model.grad
         loss = cross_entropy_loss(Y_batch, outputs)
         return loss
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     print("Validation accuracy:", calculate_accuracy(X_val, Y_val, model))
 
     # Plot loss for first model (task 2b)
-    plt.ylim([0., .2])
+    plt.ylim([0., .3])
     utils.plot_loss(train_history["loss"],
                     "Training Loss", npoints_to_average=10)
     utils.plot_loss(val_history["loss"], "Validation Loss")
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     plt.show()
 
     # Plot accuracy
-    plt.ylim([0.93, .99])
+    plt.ylim([0.80, .99])
     utils.plot_loss(train_history["accuracy"], "Training Accuracy")
     utils.plot_loss(val_history["accuracy"], "Validation Accuracy")
     plt.xlabel("Number of Training Steps")
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     )
     train_history_shuffle, val_history_shuffle = trainer.train(num_epochs)
 
-    plt.ylim([0., .2])
+    plt.ylim([0., .3])
     utils.plot_loss(train_history["loss"],
                     "Training Loss", npoints_to_average=10)
     utils.plot_loss(
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     plt.savefig("task2e_train_loss_with_shuffle.png")
     plt.show()
 
-    plt.ylim([0.93, .99])
+    plt.ylim([0.8, .99])
     utils.plot_loss(val_history["accuracy"], "Validation Accuracy")
     utils.plot_loss(
         val_history_shuffle["accuracy"], "Validation Accuracy with shuffle")

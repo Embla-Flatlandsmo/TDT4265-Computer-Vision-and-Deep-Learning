@@ -73,7 +73,7 @@ class BaseTrainer:
         )
 
         global_step = 0
-        prev_min_loss = float("inf")
+        min_loss = float("inf")
         times_not_improving = 0
         for epoch in range(num_epochs):
             train_loader = utils.batch_loader(
@@ -91,17 +91,17 @@ class BaseTrainer:
                     val_history["accuracy"][global_step] = accuracy_val
 
                     # (Task 2d): Early stopping.
-                    if (val_loss < prev_min_loss):
-                        # We have found a better loss
-                        # i.e. the loss has improved
-                        times_not_improving = 0
-                        prev_min_loss = val_loss
-                    else:
-                        # Loss is not improving:
-                        times_not_improving += 1
-                        if times_not_improving >= 10:
-                            print("Early stopping at epoch number " + str(epoch))
-                            return train_history, val_history
+                    # if (val_loss < min_loss):
+                    #     # We have found a better loss
+                    #     # i.e. the loss has improved
+                    #     times_not_improving = 0
+                    #     min_loss = val_loss
+                    # else:
+                    #     # Loss is not improving:
+                    #     times_not_improving += 1
+                    #     if times_not_improving >= 10:
+                    #         print("Early stopping at epoch number " + str(epoch))
+                    #         return train_history, val_history
 
                 global_step += 1
         return train_history, val_history

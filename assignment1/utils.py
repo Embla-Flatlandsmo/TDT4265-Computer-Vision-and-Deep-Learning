@@ -27,6 +27,7 @@ def batch_loader(
 
     if (shuffle):
         # (task 2e)
+        # See https://stackoverflow.com/a/4602224
         idx = np.random.permutation(len(Y))
         X = X[idx]
         Y = Y[idx]

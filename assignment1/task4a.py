@@ -12,7 +12,6 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     Returns:
         Cross entropy error (float)
     """
-    # TODO implement this function (Task 3a)
 
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
@@ -68,17 +67,16 @@ class SoftmaxModel:
             targets: labels/targets of each image of shape: [batch size, num_classes]
         """
 
-        # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda
-        # which is defined in the constructor.
-
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
         self.grad = np.zeros_like(self.w)
-        # (Task 3a)
+        # (Task 4b)
         # dc_dw = [batch size, 785]*[batch_size, num_outputs]
+        # w = [785, num_outputs]
         # result should be [785, num_outputs]
         dc_dw = -X.T@(targets-outputs) / X.shape[0]
-        self.grad = dc_dw
+        # dR_dw = np.sum(self.w)
+        self.grad = dc_dw + self.l2_reg_lambda*self.w
 
         assert self.grad.shape == self.w.shape,\
             f"Grad shape: {self.grad.shape}, w: {self.w.shape}"
