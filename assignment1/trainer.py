@@ -90,7 +90,7 @@ class BaseTrainer:
                     val_history["loss"][global_step] = val_loss
                     val_history["accuracy"][global_step] = accuracy_val
 
-                    # (Task 2d): Early stopping.
+                    # # (Task 2d): Early stopping.
                     # if (val_loss < min_loss):
                     #     # We have found a better loss
                     #     # i.e. the loss has improved
