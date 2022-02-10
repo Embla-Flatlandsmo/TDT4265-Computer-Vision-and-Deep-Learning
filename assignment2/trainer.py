@@ -73,6 +73,8 @@ class BaseTrainer:
         )
 
         global_step = 0
+        min_loss = float("inf")
+        times_not_improving = 0
         for epoch in range(num_epochs):
             train_loader = utils.batch_loader(
                 self.X_train, self.Y_train, self.batch_size, shuffle=self.shuffle_dataset)
@@ -87,6 +89,16 @@ class BaseTrainer:
                     train_history["accuracy"][global_step] = accuracy_train
                     val_history["loss"][global_step] = val_loss
                     val_history["accuracy"][global_step] = accuracy_val
-                    # TODO: Implement early stopping (copy from last assignment)
+                    if (val_loss < min_loss):
+                        # We have found a better loss
+                        # i.e. the loss has improved
+                        times_not_improving = 0
+                        min_loss = val_loss
+                    else:
+                        # Loss is not improving:
+                        times_not_improving += 1
+                        if times_not_improving >= 50:
+                            print("Early stopping at epoch number " + str(epoch))
+                            return train_history, val_history
                 global_step += 1
         return train_history, val_history

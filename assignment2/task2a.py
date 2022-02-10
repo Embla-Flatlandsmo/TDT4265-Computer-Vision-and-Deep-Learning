@@ -13,7 +13,16 @@ def pre_process_images(X: np.ndarray):
     """
     assert X.shape[1] == 784,\
         f"X.shape[1]: {X.shape[1]}, should be 784"
-    # TODO implement this function (Task 2a)
+
+    img_std = np.std(X)
+    img_mean = np.average(X)
+    print("Training set mean: "+str(img_mean))
+    print("Training set std: " + str(img_std))
+    X = (X-img_mean)/img_std
+
+    # bias trick
+    bias = np.ones((X.shape[0], 1))
+    X = np.append(X, bias, axis=1)
     return X
 
 
@@ -27,9 +36,32 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     """
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
-    # TODO: Implement this function (copy from last assignment)
+    assert targets.shape == outputs.shape,\
+        f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
+
+    # N = targets.shape[0]
+
+    # ce = -(1/(N)) * np.sum(np.sum(targets*np.log(outputs)))
+    # return ce
+    loss = -np.average(np.sum(targets*np.log(outputs), axis=1))
+    return loss
     raise NotImplementedError
 
+
+def sigmoid(z: np.ndarray) -> np.ndarray:
+    return 1.0/(1.0+np.exp(-z))
+
+
+# def dsigmoid(z: np.ndarray) -> np.ndarray:
+#     return sigmoid(z)*(1.0-sigmoid(z))
+
+def dsigmoid(z: np.ndarray) -> np.ndarray:
+    return z*(1.0-z)
+
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 class SoftmaxModel:
 
@@ -42,7 +74,7 @@ class SoftmaxModel:
         # Always reset random seed before weight init to get comparable results.
         np.random.seed(1)
         # Define number of input nodes
-        self.I = None
+        self.I = 785
         self.use_improved_sigmoid = use_improved_sigmoid
 
         # Define number of output nodes
@@ -50,8 +82,13 @@ class SoftmaxModel:
         # A hidden layer with 64 neurons and a output layer with 10 neurons.
         self.neurons_per_layer = neurons_per_layer
 
+        # self.hidden_layer_output = np.zeros(
+        #     (self.I, self.neurons_per_layer[0]))
+        self.hidden_layer_output = []
+
         # Initialize the weights
         self.ws = []
+        # self.hidden_layer_output = []
         prev = self.I
         for size in self.neurons_per_layer:
             w_shape = (prev, size)
@@ -69,6 +106,15 @@ class SoftmaxModel:
             y: output of model with shape [batch size, num_outputs]
         """
         # TODO implement this function (Task 2b)
+        # 785 -> 64 -> 10
+        # BSx785 * 785x64 * 64*10
+        hiddenLayerOutput = sigmoid(X @ self.ws[0])
+        print("HiddenLayerOutput shape: "+str(hiddenLayerOutput.shape))
+        self.hidden_layer_output = hiddenLayerOutput
+        out = softmax(hiddenLayerOutput @ self.ws[1])
+        # print("Out shape: " + str(out.shape))
+        return out
+
         # HINT: For performing the backward pass, you can save intermediate activations in variables in the forward pass.
         # such as self.hidden_layer_output = ...
         return None
@@ -86,9 +132,30 @@ class SoftmaxModel:
         # TODO implement this function (Task 2b)
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
+        # Eq3 from assignment
+        # must find delta_j
+        output_cost = -(targets-outputs)
+        # delta_k = np.average(output_cost, axis=0)[np.newaxis, :].T / X.shape[0]
+        delta_k = output_cost / outputs.shape[0]
+        output_grad = delta_k.T@self.hidden_layer_output / self.hidden_layer_output.shape[0]
+        # print("Delta_k shape: " + str(delta_k.shape))
+        # print("ws[1] shape: "+str(self.ws[1].shape))
+        # print("output grad shape: " +str(output_grad.shape))
+        # sum = np.dot(self.ws[1], delta_k.T)
+        # print("Sum shape: " +str(sum.shape))
+
+        z_j = self.ws[0].T@X.T
+        print("z_j shape: " + str(z_j.shape))
+
+        delta_j = dsigmoid(z_j) * (self.ws[1]@delta_k.T)
+        # print("delta_j shape: " + str(delta_j.shape))
+        hidden_layer_grad = delta_j@X / X.shape[0]
+        # print("Hidden layer grad shape: " +str(hidden_layer_grad.shape))
         # A list of gradients.
         # For example, self.grads[0] will be the gradient for the first hidden layer
         self.grads = []
+        self.grads.append(hidden_layer_grad.T)
+        self.grads.append(output_grad.T)
 
         for grad, w in zip(self.grads, self.ws):
             assert grad.shape == w.shape,\
@@ -107,6 +174,13 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
         Y: shape [Num examples, num classes]
     """
     # TODO: Implement this function (copy from last assignment)
+    encoded = np.zeros((Y.shape[0], num_classes))
+    for i in range(Y.shape[0]):
+        assert Y[i][0] < num_classes,\
+            f"Integer at i={i} is {Y[i][0]} and exceeds num_classes ({num_classes})"
+        encoded[i][Y[i][0]] = 1
+
+    return encoded
     raise NotImplementedError
 
 
