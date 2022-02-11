@@ -44,6 +44,12 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     return loss
     raise NotImplementedError
 
+def improved_sigmoid(z: np.ndarray) -> np.ndarray:
+    return 1.7159*np.tanh((2/3)*z)
+
+def dimproved_sigmoid(z: np.ndarray) -> np.ndarray:
+    # I used Symbolab for this...
+    return 1.7159*(2/3)/np.power(np.cosh((2/3)*z),2)
 
 def sigmoid(z: np.ndarray) -> np.ndarray:
     return 1.0/(1.0+np.exp(-z))
@@ -89,9 +95,13 @@ class SoftmaxModel:
         prev = self.I
         for size in self.neurons_per_layer:
             w_shape = (prev, size)
-            print("Initializing weight to shape:", w_shape)
+            # print("Initializing weight to shape:", w_shape)
             # w = np.zeros(w_shape)
-            w = np.random.uniform(-1, 1, w_shape) # Task 2c
+            if use_improved_weight_init: #Task 3a
+                fan_in = size # For readability
+                w = np.random.normal(0,1/np.sqrt(fan_in), w_shape)
+            else:
+                w = np.random.uniform(-1, 1, w_shape) # Task 2c
             self.ws.append(w)
             prev = size
         self.grads = [None for i in range(len(self.ws))]
@@ -105,7 +115,10 @@ class SoftmaxModel:
         """
         # Task 2b 
         z_j = X @ self.ws[0]
-        a_j = sigmoid(z_j)
+        if (self.use_improved_sigmoid):
+            a_j = improved_sigmoid(z_j)
+        else:
+            a_j = sigmoid(z_j)
         self.hidden_layer_output = a_j
 
         # To output layer, softmax function
@@ -135,7 +148,10 @@ class SoftmaxModel:
 
 
         # EQ 3 from assignment 2 (ish)
-        delta_j = dsigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
+        if self.use_improved_sigmoid: #Task 3b
+            delta_j = dimproved_sigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
+        else:
+            delta_j = dsigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
 
         hidden_layer_grad: np.ndarray = delta_j@X / outputs.shape[0]
 
