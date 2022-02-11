@@ -27,6 +27,7 @@ if __name__ == "__main__":
     Y_train = one_hot_encode(Y_train, 10)
     Y_val = one_hot_encode(Y_val, 10)
 
+    """ Task 3, uncomment to run
     model = SoftmaxModel(
         neurons_per_layer,
         use_improved_sigmoid,
@@ -126,4 +127,83 @@ if __name__ == "__main__":
         ]
     print(tabulate(data, headers=["Technique added", "Final Validation Loss", "Final Validation Accuracy"]))
     plt.show()
+    """
 
+    # Task 4 a
+    use_improved_sigmoid = True
+    use_improved_weight_init = True
+    use_momentum = True
+
+    model_64 = SoftmaxModel(
+        neurons_per_layer,
+        use_improved_sigmoid,
+        use_improved_weight_init)
+    trainer_64 = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_64, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_64_history, val_64_history = trainer_64.train(num_epochs)
+
+    neurons_per_layer = [32, 10]
+    model_32 = SoftmaxModel(
+        neurons_per_layer,
+        use_improved_sigmoid,
+        use_improved_weight_init)
+    trainer_32 = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_32, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_32_history, val_32_history = trainer_32.train(num_epochs)
+
+    plt.subplot(1, 2, 1)
+    utils.plot_loss(
+        train_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
+    utils.plot_loss(
+        train_32_history["loss"], "32 hidden layer neurons", npoints_to_average=10)
+    plt.ylim([0, .6])
+    # plt.legend()
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Loss - Average")
+    plt.subplot(1, 2, 2)
+    plt.ylim([0.85,  1.0])
+    utils.plot_loss(val_64_history["accuracy"], "64 hidden layer neurons")
+    utils.plot_loss(val_32_history["accuracy"], "32 hidden layer neurons")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Accuracy")
+    plt.legend()
+    plt.savefig("task4a.png")
+    plt.show()
+
+    # Task 4b
+    neurons_per_layer = [128, 10]
+    model_128 = SoftmaxModel(
+        neurons_per_layer,
+        use_improved_sigmoid,
+        use_improved_weight_init)
+    trainer_128 = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_128, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_128_history, val_128_history = trainer_128.train(num_epochs)
+
+    plt.subplot(1, 2, 1)
+    utils.plot_loss(
+        train_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
+    utils.plot_loss(
+        train_128_history["loss"], "128 hidden layer neurons", npoints_to_average=10)
+    plt.ylim([0, .6])
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Loss - Average")
+    # plt.legend()
+    plt.subplot(1, 2, 2)
+    plt.ylim([0.85,  1.0])
+    utils.plot_loss(val_64_history["accuracy"], "64 hidden layer neurons")
+    utils.plot_loss(val_128_history["accuracy"], "128 hidden layer neurons")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Accuracy")
+    plt.legend()
+    plt.savefig("task4b.png")
+    plt.show()

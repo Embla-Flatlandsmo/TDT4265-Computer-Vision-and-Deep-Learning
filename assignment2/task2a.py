@@ -35,12 +35,7 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
 
-    N = targets.shape[0]
-
-    ce = -(1/(N)) * np.sum(np.sum(targets*np.log(outputs)))
     loss = -np.average(np.sum(targets*np.log(outputs), axis=1))
-    # assert loss == ce, \
-    #     f"Loss: {loss}, ce: {ce}"
     return loss
     raise NotImplementedError
 
@@ -87,14 +82,16 @@ class SoftmaxModel:
         # A hidden layer with 64 neurons and a output layer with 10 neurons.
         self.neurons_per_layer = neurons_per_layer
 
-        self.hidden_layer_output = []
+        self.hidden_layer_output = [] 
+        # print(self.hidden_layer_output.shape)
 
         # Initialize the weights
         self.ws = []
-        # self.hidden_layer_output = []
         prev = self.I
         for size in self.neurons_per_layer:
             w_shape = (prev, size)
+            if prev != self.I:
+                self.hidden_layer_output.append(np.zeros((prev,1)))
             # print("Initializing weight to shape:", w_shape)
             # w = np.zeros(w_shape)
             if use_improved_weight_init: #Task 3a
@@ -113,19 +110,25 @@ class SoftmaxModel:
         Returns:
             y: output of model with shape [batch size, num_outputs]
         """
-        # Task 2b 
-        z_j = X @ self.ws[0]
+        z = X @ self.ws[0]
         if (self.use_improved_sigmoid):
-            a_j = improved_sigmoid(z_j)
+            a = improved_sigmoid(z)
         else:
-            a_j = sigmoid(z_j)
-        self.hidden_layer_output = a_j
+            a = sigmoid(z)
+        self.hidden_layer_output[0] = a
+        for l in range(1, len(self.hidden_layer_output)):
+            # Iterate through all but the last layer
+            z = self.hidden_layer_output[l-1] @ self.ws[l]
+            if (self.use_improved_sigmoid):
+                a = improved_sigmoid(z)
+            else:
+                a = sigmoid(z)
+            self.hidden_layer_output[l]=a
 
         # To output layer, softmax function
-        z_k = a_j @ self.ws[1]
-        out = softmax(z_k)
+        z = self.hidden_layer_output[-1] @ self.ws[-1]
+        out = softmax(z)
         return out
-        return None
 
     def backward(self, X: np.ndarray, outputs: np.ndarray,
                  targets: np.ndarray) -> None:
@@ -140,24 +143,43 @@ class SoftmaxModel:
         # Task 2b
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
+        
         # Hint 2 from task 1a
-        delta_k = -(targets-outputs)
+        delta = -(targets-outputs)
 
         # EQ 1 from assignment 2
-        output_grad: np.ndarray = delta_k.T@self.hidden_layer_output/outputs.shape[0]
+        # Starting at output layer
+        output_grad: np.ndarray = delta.T@self.hidden_layer_output[-1]/outputs.shape[0]
+        self.grads[-1] = output_grad.T
+
+        for l in range(len(self.hidden_layer_output)-1, -1, -1):
+            # print("hidden layer shape: " + str(self.hidden_layer_output[l].shape))
+            # print("ws[l+1] shape: " + str(self.ws[l+1].shape))
+            # print("ws[l] shape: " +str(self.ws[l].shape))
+            # print("delta shape: " +str(delta.shape))
+            if self.use_improved_sigmoid:
+                delta = dimproved_sigmoid(self.hidden_layer_output[l]).T * (self.ws[l+1]@delta.T)
+            else:
+                delta = dsigmoid(self.hidden_layer_output[l]).T * (self.ws[l+1]@delta.T)
+            # print("Delta shape: " +str(delta.shape))
+            # print("Hidden layer output[l-1]: "+str(self.hidden_layer_output[l-1].shape))
+            self.grads[l] = (delta@self.hidden_layer_output[l-1]/outputs.shape[0]).T
+            # print("Delta shape: " +str(delta.shape))
+            # print("Exited at l " +str(l))
+
+        # # EQ 3 from assignment 2 (ish)
+        # if self.use_improved_sigmoid: #Task 3b
+        #     delta_j = dimproved_sigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
+        # else:
+        #     delta_j = dsigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
+        # print("X shape: "+str(X.shape))
+        # From input layer to first layer
+        first_layer_grad: np.ndarray = delta@X / outputs.shape[0]
+        self.grads[0] = first_layer_grad.T
 
 
-        # EQ 3 from assignment 2 (ish)
-        if self.use_improved_sigmoid: #Task 3b
-            delta_j = dimproved_sigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
-        else:
-            delta_j = dsigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
-
-        hidden_layer_grad: np.ndarray = delta_j@X / outputs.shape[0]
-
-
-        self.grads[0] = hidden_layer_grad.T
-        self.grads[1] = output_grad.T
+        # self.grads[0] = hidden_layer_grad.T
+        # self.grads[1] = output_grad.T
 
         for grad, w in zip(self.grads, self.ws):
             assert grad.shape == w.shape,\
