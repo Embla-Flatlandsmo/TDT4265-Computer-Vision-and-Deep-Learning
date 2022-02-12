@@ -4,7 +4,7 @@ import typing
 np.random.seed(1)
 
 
-def pre_process_images(X: np.ndarray, mean = 33.55274553571429, std = 78.87550070784701):
+def pre_process_images(X: np.ndarray, mean=33.55274553571429, std=78.87550070784701):
     """
     Args:
         X: images of shape [batch size, 784] in the range (0, 255)
@@ -39,29 +39,40 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     return loss
     raise NotImplementedError
 
+
 def improved_sigmoid(z: np.ndarray) -> np.ndarray:
     return 1.7159*np.tanh((2/3)*z)
 
-def dimproved_sigmoid(z: np.ndarray) -> np.ndarray:
-    # I used Symbolab for this...
-    return 1.7159*(2/3)/np.power(np.cosh((2/3)*z),2)
+
+def dimproved_sigmoid(a: np.ndarray) -> np.ndarray:
+    """
+    Since we will be inputting a into the function,
+    we have a=improved_sigmoid(z). The derivative
+    becomes the following:
+    """
+
+    return (2.0/3.0)*(1.7159- (1/1.7159)*a**2)
 
 def sigmoid(z: np.ndarray) -> np.ndarray:
     return 1.0/(1.0+np.exp(-z))
 
-def dsigmoid(z: np.ndarray) -> np.ndarray:
-    return z*(1.0-z)
+
+def dsigmoid(a: np.ndarray) -> np.ndarray:
+    return a*(1.0-a)
+
 
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
     denominator = np.exp(x).sum(axis=1)[np.newaxis, :].T  # [batch_size, 1]
-    numerator = np.exp(x) # [batch size, num_outputs]
-    res = numerator/denominator # Elementwise numerator[batch,:]/denominator[batch]
+    numerator = np.exp(x)  # [batch size, num_outputs]
+    # Elementwise numerator[batch,:]/denominator[batch]
+    res = numerator/denominator
 
-    assert np.sum(res, axis=1).all()==1,\
+    assert np.sum(res, axis=1).all() == 1,\
         f"Sum of softmax is not 1"
-        
+
     return res
+
 
 class SoftmaxModel:
 
@@ -82,9 +93,6 @@ class SoftmaxModel:
         # A hidden layer with 64 neurons and a output layer with 10 neurons.
         self.neurons_per_layer = neurons_per_layer
 
-
-        # print(self.hidden_layer_output.shape)
-
         # Initialize the weights
         self.ws = []
         prev = self.I
@@ -92,46 +100,30 @@ class SoftmaxModel:
             w_shape = (prev, size)
             # print("Initializing weight to shape:", w_shape)
             # w = np.zeros(w_shape)
-            if use_improved_weight_init: #Task 3a
-                fan_in = size # For readability
-                w = np.random.normal(0,1/np.sqrt(fan_in), w_shape)
+            if use_improved_weight_init:  # Task 3a
+                fan_in = size  # For readability
+                w = np.random.normal(0, 1/np.sqrt(fan_in), w_shape)
             else:
-                w = np.random.uniform(-1, 1, w_shape) # Task 2c
+                w = np.random.uniform(-1, 1, w_shape)  # Task 2c
             self.ws.append(w)
             prev = size
         self.grads = [None for i in range(len(self.ws))]
-        self.hidden_layer_output = [None for i in range(len(neurons_per_layer)-1)]
+        self.hidden_layer_output = [
+            None for i in range(len(neurons_per_layer)-1)]
 
-    def forward(self, X: np.ndarray, layer = 0) -> np.ndarray:
+    def forward(self, X: np.ndarray, layer=0) -> np.ndarray:
         """
         Args:
             X: images of shape [batch size, 785]
         Returns:
             y: output of model with shape [batch size, num_outputs]
         """
-        # z = X @ self.ws[layer]
-        # if (layer == len(self.neurons_per_layer)-1):
-        #     # We are at the output layer
-        #     z = self.hidden_layer_output[-1] @ self.ws[-1]
-        #     out = softmax(z)
-        #     return out
-        # else:
-        #     if (self.use_improved_sigmoid):
-        #         a = improved_sigmoid(z)
-        #     else:
-        #         a = sigmoid(z)
-        #     self.hidden_layer_output[layer] = a
-        #     out = self.forward(self.hidden_layer_output[layer], layer + 1)
-        #     return out
-            
-
-
         z = X @ self.ws[0]
         if (self.use_improved_sigmoid):
             a = improved_sigmoid(z)
         else:
             a = sigmoid(z)
-        
+
         self.hidden_layer_output[0] = a
         for l in range(1, len(self.hidden_layer_output)):
             # Iterate through all but the last layer
@@ -140,7 +132,8 @@ class SoftmaxModel:
                 a = improved_sigmoid(z)
             else:
                 a = sigmoid(z)
-            self.hidden_layer_output[l]=a
+            self.hidden_layer_output[l] = a
+
 
         # To output layer, softmax function
         z = self.hidden_layer_output[-1] @ self.ws[-1]
@@ -160,54 +153,32 @@ class SoftmaxModel:
         # Task 2b
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
-        
+
         batch_size = X.shape[0]
         # Hint 2 from task 1a
-        delta = -(targets-outputs)
 
-        # EQ 1 from assignment 2
-        # Starting at output layer
-        output_grad: np.ndarray = delta.T@self.hidden_layer_output[-1]/ batch_size
+        delta = -(targets - outputs)
+
+        output_grad: np.ndarray = delta.T@self.hidden_layer_output[-1] / batch_size
         self.grads[-1] = output_grad.T
 
-        for i in range(len(self.hidden_layer_output)-1, -1, -1):
+        for i in range(len(self.hidden_layer_output)-1, 0, -1):
             if self.use_improved_sigmoid:
-                delta = dimproved_sigmoid(self.hidden_layer_output[i])*np.dot(delta, self.ws[i+1].T)
+                delta = dimproved_sigmoid(
+                    self.hidden_layer_output[i])*(delta@self.ws[i+1].T)
             else:
-                delta = dsigmoid(self.hidden_layer_output[i])*np.dot(delta, self.ws[i+1].T)
-            if i == 0:
-                self.grads[i]=np.dot(delta.T,X).T / batch_size
-            else:
-                self.grads[i] = np.dot(delta.T, self.hidden_layer_output[i-1]).T/ batch_size
+                delta = dsigmoid(
+                    self.hidden_layer_output[i])*(delta@self.ws[i+1].T)
+            self.grads[i] = self.hidden_layer_output[i-1].T@delta/batch_size
 
-        # for l in range(len(self.hidden_layer_output)-1, -1, -1):
-        #     print("hidden layer shape: " + str(self.hidden_layer_output[l].shape))
-        #     # print("ws[l+1] shape: " + str(self.ws[l+1].shape))
-        #     # print("ws[l] shape: " +str(self.ws[l].shape))
-        #     # print("delta shape: " +str(delta.shape))
-        #     if self.use_improved_sigmoid:
-        #         delta = dimproved_sigmoid(self.hidden_layer_output[l]).T * (self.ws[l+1]@delta.T)
-        #     else:
-        #         delta = dsigmoid(self.hidden_layer_output[l]).T * (self.ws[l+1]@delta.T)
-        #     # print("Delta shape: " +str(delta.shape))
-        #     # print("Hidden layer output[l-1]: "+str(self.hidden_layer_output[l-1].shape))
-        #     self.grads[l] = (delta@self.hidden_layer_output[l-1]/outputs.shape[0]).T
-        #     # print("Delta shape: " +str(delta.shape))
-        #     # print("Exited at l " +str(l))
-
-        # # # EQ 3 from assignment 2 (ish)
-        # if self.use_improved_sigmoid: #Task 3b
-        #     delta_j = dimproved_sigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
-        # else:
-        #     delta_j = dsigmoid(self.hidden_layer_output).T * (self.ws[1]@delta_k.T)
-        # print("X shape: "+str(X.shape))
-        # From input layer to first layer
-        # first_layer_grad: np.ndarray = delta@X / outputs.shape[0]
-        # self.grads[0] = first_layer_grad.T
-
-
-        # self.grads[0] = hidden_layer_grad.T
-        # self.grads[1] = output_grad.T
+        # First layer:
+        if self.use_improved_sigmoid:
+            delta = dimproved_sigmoid(
+                self.hidden_layer_output[0])*(delta@self.ws[1].T)
+        else:
+            delta = dsigmoid(
+                self.hidden_layer_output[0])*(delta@self.ws[1].T)
+        self.grads[0] = X.T@delta/batch_size
 
         for grad, w in zip(self.grads, self.ws):
             assert grad.shape == w.shape,\
@@ -215,6 +186,15 @@ class SoftmaxModel:
 
     def zero_grad(self) -> None:
         self.grads = [None for i in range(len(self.ws))]
+
+    def print_num_parameters(self) -> None:
+        layer = 0
+        total_params = 0
+        for w in self.ws:
+            total_params += w.shape[0]*w.shape[1]
+            print("w[" + str(layer) + "]: " + str(w.shape))
+            layer += 1
+        print("Total parameters: " + str(total_params))
 
 
 def one_hot_encode(Y: np.ndarray, num_classes: int):

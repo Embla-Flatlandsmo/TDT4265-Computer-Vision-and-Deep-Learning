@@ -27,7 +27,8 @@ if __name__ == "__main__":
     Y_train = one_hot_encode(Y_train, 10)
     Y_val = one_hot_encode(Y_val, 10)
 
-    """ Task 3, uncomment to run
+    """
+    # Task 3, uncomment to run
     model = SoftmaxModel(
         neurons_per_layer,
         use_improved_sigmoid,
@@ -39,10 +40,6 @@ if __name__ == "__main__":
     )
     train_history, val_history = trainer.train(num_epochs)
 
-    # Example created for comparing with and without shuffling.
-    # For comparison, show all loss/accuracy curves in the same plot
-    # YOU CAN DELETE EVERYTHING BELOW!
-    # Use improved weight init
     use_improved_weight_init = True
     model_improved_weight_init = SoftmaxModel(
         neurons_per_layer,
@@ -94,11 +91,11 @@ if __name__ == "__main__":
         train_history_improved_sigmoid["loss"], "Task 3 - Improved weight init+sigmoid", npoints_to_average=10)
     utils.plot_loss(
         train_history_use_momentum["loss"], "Task 3 - Improved weight init+sigmoid+momentum", npoints_to_average=10)
-    plt.ylim([0, .4])
+    plt.ylim([0, .2])
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
     plt.subplot(1, 2, 2)
-    plt.ylim([0.85,  1.0])
+    plt.ylim([0.9,  1.0])
     utils.plot_loss(val_history["accuracy"], "Task 2 Model")
     utils.plot_loss(
         val_history_improved_weight_init["accuracy"], "Task 3 - Improved weight init")
@@ -128,12 +125,14 @@ if __name__ == "__main__":
     print(tabulate(data, headers=["Technique added", "Final Validation Loss", "Final Validation Accuracy"]))
     plt.show()
     """
-
-    # Task 4 a
+    
+    # Task 4
     use_improved_sigmoid = True
     use_improved_weight_init = True
     use_momentum = True
-
+    learning_rate = 0.02
+    """ 
+    #Task 4 a and b
     model_64 = SoftmaxModel(
         neurons_per_layer,
         use_improved_sigmoid,
@@ -162,12 +161,12 @@ if __name__ == "__main__":
         train_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
     utils.plot_loss(
         train_32_history["loss"], "32 hidden layer neurons", npoints_to_average=10)
-    plt.ylim([0, .6])
+    plt.ylim([0, .2])
     # plt.legend()
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
     plt.subplot(1, 2, 2)
-    plt.ylim([0.85,  1.0])
+    plt.ylim([0.9,  1.0])
     utils.plot_loss(val_64_history["accuracy"], "64 hidden layer neurons")
     utils.plot_loss(val_32_history["accuracy"], "32 hidden layer neurons")
     plt.xlabel("Number of Training Steps")
@@ -194,12 +193,12 @@ if __name__ == "__main__":
         train_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
     utils.plot_loss(
         train_128_history["loss"], "128 hidden layer neurons", npoints_to_average=10)
-    plt.ylim([0, .6])
+    plt.ylim([0, .2])
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
     # plt.legend()
     plt.subplot(1, 2, 2)
-    plt.ylim([0.85,  1.0])
+    plt.ylim([0.9,  1.0])
     utils.plot_loss(val_64_history["accuracy"], "64 hidden layer neurons")
     utils.plot_loss(val_128_history["accuracy"], "128 hidden layer neurons")
     plt.xlabel("Number of Training Steps")
@@ -207,3 +206,82 @@ if __name__ == "__main__":
     plt.legend()
     plt.savefig("task4b.png")
     plt.show()
+    """
+    # Task 4d
+    model = SoftmaxModel(
+        neurons_per_layer,
+        use_improved_sigmoid,
+        use_improved_weight_init)
+    trainer = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_history, val_history = trainer.train(num_epochs)
+    """
+    # Task 4d two-layer
+    neurons_per_layer = [60, 60, 10]
+    model_two_hl = SoftmaxModel(
+        neurons_per_layer,
+        use_momentum,
+        use_improved_weight_init)
+    trainer_two_hl = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_two_hl, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_history_two_hl, val_history_two_hl = trainer_two_hl.train(num_epochs)
+
+    plt.subplot(1, 2, 1)
+    utils.plot_loss(train_history["loss"],
+                    "Neurons: [64, 10]", npoints_to_average=10)
+    utils.plot_loss(
+        train_history_two_hl["loss"], "Neurons: [64, 64, 10]", npoints_to_average=10)
+    plt.ylim([0, .2])
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Loss - Average")
+    plt.subplot(1, 2, 2)
+    plt.ylim([0.9,  1.0])
+    utils.plot_loss(val_history["accuracy"], "Neurons: [64, 10]")
+    utils.plot_loss(
+        val_history_two_hl["accuracy"], "Neurons: [64, 64, 10]")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Accuracy")
+    plt.legend()
+    plt.savefig("task4d.png")
+    """
+    # Task 4e
+    # neurons_per_layer = [64 for i in range(10)].append(10)
+    neurons_per_layer = [64]*10
+    neurons_per_layer.append(10)
+    model_ten_hl = SoftmaxModel(
+        neurons_per_layer,
+        use_momentum,
+        use_improved_weight_init)
+    
+    # model_ten_hl.print_num_parameters()
+    
+    trainer_ten_hl = SoftmaxTrainer(
+        momentum_gamma, use_momentum,
+        model_ten_hl, learning_rate, batch_size, shuffle_data,
+        X_train, Y_train, X_val, Y_val,
+    )
+    train_history_ten_hl, val_history_ten_hl = trainer_ten_hl.train(num_epochs)
+
+    plt.subplot(1, 2, 1)
+    utils.plot_loss(train_history["loss"],
+                    "Neurons: [64, 10]", npoints_to_average=10)
+    utils.plot_loss(
+        train_history_ten_hl["loss"], "Neurons: 10 layers of 64, then 10", npoints_to_average=10)
+    plt.ylim([0, .2])
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Loss - Average")
+    plt.subplot(1, 2, 2)
+    plt.ylim([0.9,  1.0])
+    utils.plot_loss(val_history["accuracy"], "Neurons: [64, 10]")
+    utils.plot_loss(
+        val_history_ten_hl["accuracy"], "Neurons: 10 layers of 64, then 10")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Validation Accuracy")
+    plt.legend()
+    plt.savefig("task4e.png")
