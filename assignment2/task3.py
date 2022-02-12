@@ -15,7 +15,7 @@ if __name__ == "__main__":
     neurons_per_layer = [64, 10]
     momentum_gamma = .9  # Task 3 hyperparameter
     shuffle_data = True
-
+    
     use_improved_sigmoid = False
     use_improved_weight_init = False
     use_momentum = False
@@ -83,19 +83,19 @@ if __name__ == "__main__":
         num_epochs)
 
     plt.subplot(1, 2, 1)
-    utils.plot_loss(train_history["loss"],
+    utils.plot_loss(val_history["loss"],
                     "Task 2 Model", npoints_to_average=10)
     utils.plot_loss(
-        train_history_improved_weight_init["loss"], "Task 3 - Improved weight init", npoints_to_average=10)
+        val_history_improved_weight_init["loss"], "Task 3 - Improved weight init", npoints_to_average=10)
     utils.plot_loss(
-        train_history_improved_sigmoid["loss"], "Task 3 - Improved weight init+sigmoid", npoints_to_average=10)
+        val_history_improved_sigmoid["loss"], "Task 3 - Improved weight init+sigmoid", npoints_to_average=10)
     utils.plot_loss(
-        train_history_use_momentum["loss"], "Task 3 - Improved weight init+sigmoid+momentum", npoints_to_average=10)
-    plt.ylim([0, .2])
+        val_history_use_momentum["loss"], "Task 3 - Improved weight init+sigmoid+momentum", npoints_to_average=10)
+    plt.ylim([0, .6])
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
     plt.subplot(1, 2, 2)
-    plt.ylim([0.9,  1.0])
+    plt.ylim([0.85, 1.0])
     utils.plot_loss(val_history["accuracy"], "Task 2 Model")
     utils.plot_loss(
         val_history_improved_weight_init["accuracy"], "Task 3 - Improved weight init")
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     use_improved_weight_init = True
     use_momentum = True
     learning_rate = 0.02
-    """ 
+    """
     #Task 4 a and b
     model_64 = SoftmaxModel(
         neurons_per_layer,
@@ -158,15 +158,15 @@ if __name__ == "__main__":
 
     plt.subplot(1, 2, 1)
     utils.plot_loss(
-        train_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
+        val_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
     utils.plot_loss(
-        train_32_history["loss"], "32 hidden layer neurons", npoints_to_average=10)
-    plt.ylim([0, .2])
+        val_32_history["loss"], "32 hidden layer neurons", npoints_to_average=10)
+    plt.ylim([0, .6])
     # plt.legend()
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
     plt.subplot(1, 2, 2)
-    plt.ylim([0.9,  1.0])
+    plt.ylim([0.85,  1.0])
     utils.plot_loss(val_64_history["accuracy"], "64 hidden layer neurons")
     utils.plot_loss(val_32_history["accuracy"], "32 hidden layer neurons")
     plt.xlabel("Number of Training Steps")
@@ -190,15 +190,15 @@ if __name__ == "__main__":
 
     plt.subplot(1, 2, 1)
     utils.plot_loss(
-        train_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
+        val_64_history["loss"], "64 hidden layer neurons", npoints_to_average=10)
     utils.plot_loss(
-        train_128_history["loss"], "128 hidden layer neurons", npoints_to_average=10)
-    plt.ylim([0, .2])
+        val_128_history["loss"], "128 hidden layer neurons", npoints_to_average=10)
+    plt.ylim([0, .6])
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
     # plt.legend()
     plt.subplot(1, 2, 2)
-    plt.ylim([0.9,  1.0])
+    plt.ylim([0.85, 1.0])
     utils.plot_loss(val_64_history["accuracy"], "64 hidden layer neurons")
     utils.plot_loss(val_128_history["accuracy"], "128 hidden layer neurons")
     plt.xlabel("Number of Training Steps")
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         X_train, Y_train, X_val, Y_val,
     )
     train_history, val_history = trainer.train(num_epochs)
-    """
+    
     # Task 4d two-layer
     neurons_per_layer = [60, 60, 10]
     model_two_hl = SoftmaxModel(
@@ -232,26 +232,44 @@ if __name__ == "__main__":
     )
     train_history_two_hl, val_history_two_hl = trainer_two_hl.train(num_epochs)
 
-    plt.subplot(1, 2, 1)
+    # TRAINING PLOTS
+    plt.subplot(2, 2, 1)
     utils.plot_loss(train_history["loss"],
                     "Neurons: [64, 10]", npoints_to_average=10)
     utils.plot_loss(
-        train_history_two_hl["loss"], "Neurons: [64, 64, 10]", npoints_to_average=10)
-    plt.ylim([0, .2])
+        train_history_two_hl["loss"], "Neurons: [60, 60, 10]", npoints_to_average=10)
+    plt.ylim([0, .6])
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Training Loss - Average")
+    plt.subplot(2, 2, 2)
+    plt.ylim([0.85, 1.0])
+    utils.plot_loss(train_history["accuracy"], "Neurons: [64, 10]")
+    utils.plot_loss(
+        train_history_two_hl["accuracy"], "Neurons: [60, 60, 10]")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Training Accuracy")
+
+    # VALIDATION PLOTS
+    plt.subplot(2, 2, 3)
+    utils.plot_loss(val_history["loss"],
+                    "Neurons: [64, 10]", npoints_to_average=10)
+    utils.plot_loss(
+        val_history_two_hl["loss"], "Neurons: [60, 60, 10]", npoints_to_average=10)
+    plt.ylim([0, .6])
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
-    plt.subplot(1, 2, 2)
-    plt.ylim([0.9,  1.0])
+    plt.subplot(2, 2, 4)
+    plt.ylim([0.85, 1.0])
     utils.plot_loss(val_history["accuracy"], "Neurons: [64, 10]")
     utils.plot_loss(
-        val_history_two_hl["accuracy"], "Neurons: [64, 64, 10]")
+        val_history_two_hl["accuracy"], "Neurons: [60, 60, 10]")
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Accuracy")
     plt.legend()
     plt.savefig("task4d.png")
-    """
+    plt.show()
+    
     # Task 4e
-    # neurons_per_layer = [64 for i in range(10)].append(10)
     neurons_per_layer = [64]*10
     neurons_per_layer.append(10)
     model_ten_hl = SoftmaxModel(
@@ -260,7 +278,7 @@ if __name__ == "__main__":
         use_improved_weight_init)
     
     # model_ten_hl.print_num_parameters()
-    
+
     trainer_ten_hl = SoftmaxTrainer(
         momentum_gamma, use_momentum,
         model_ten_hl, learning_rate, batch_size, shuffle_data,
@@ -268,16 +286,34 @@ if __name__ == "__main__":
     )
     train_history_ten_hl, val_history_ten_hl = trainer_ten_hl.train(num_epochs)
 
-    plt.subplot(1, 2, 1)
+    # TRAINING PLOTS
+    plt.subplot(2, 2, 1)
     utils.plot_loss(train_history["loss"],
                     "Neurons: [64, 10]", npoints_to_average=10)
     utils.plot_loss(
         train_history_ten_hl["loss"], "Neurons: 10 layers of 64, then 10", npoints_to_average=10)
-    plt.ylim([0, .2])
+    plt.ylim([0, .6])
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Training Loss - Average")
+    plt.subplot(2, 2, 2)
+    plt.ylim([0.85, 1.0])
+    utils.plot_loss(train_history["accuracy"], "Neurons: [64, 10]")
+    utils.plot_loss(
+        train_history_ten_hl["accuracy"], "Neurons: 10 layers of 64, then 10")
+    plt.xlabel("Number of Training Steps")
+    plt.ylabel("Training Accuracy")
+    
+    # VALIDATION PLOTS
+    plt.subplot(2, 2, 3)
+    utils.plot_loss(val_history["loss"],
+                    "Neurons: [64, 10]", npoints_to_average=10)
+    utils.plot_loss(
+        val_history_ten_hl["loss"], "Neurons: 10 layers of 64, then 10", npoints_to_average=10)
+    plt.ylim([0, .6])
     plt.xlabel("Number of Training Steps")
     plt.ylabel("Validation Loss - Average")
-    plt.subplot(1, 2, 2)
-    plt.ylim([0.9,  1.0])
+    plt.subplot(2, 2, 4)
+    plt.ylim([0.85, 1.0])
     utils.plot_loss(val_history["accuracy"], "Neurons: [64, 10]")
     utils.plot_loss(
         val_history_ten_hl["accuracy"], "Neurons: 10 layers of 64, then 10")
@@ -285,3 +321,4 @@ if __name__ == "__main__":
     plt.ylabel("Validation Accuracy")
     plt.legend()
     plt.savefig("task4e.png")
+    plt.show()

@@ -46,12 +46,13 @@ def improved_sigmoid(z: np.ndarray) -> np.ndarray:
 
 def dimproved_sigmoid(a: np.ndarray) -> np.ndarray:
     """
+    derivative of tanh(x) is (1-(tanh(x))**2)
     Since we will be inputting a into the function,
     we have a=improved_sigmoid(z). The derivative
     becomes the following:
     """
 
-    return (2.0/3.0)*(1.7159- (1/1.7159)*a**2)
+    return 1.7159*(2.0/3.0)*(1 - ((1/1.7159)*a)**2)
 
 def sigmoid(z: np.ndarray) -> np.ndarray:
     return 1.0/(1.0+np.exp(-z))
@@ -156,13 +157,14 @@ class SoftmaxModel:
 
         batch_size = X.shape[0]
         # Hint 2 from task 1a
-
         delta = -(targets - outputs)
 
+        # Eq1 from A2 
         output_grad: np.ndarray = delta.T@self.hidden_layer_output[-1] / batch_size
         self.grads[-1] = output_grad.T
 
         for i in range(len(self.hidden_layer_output)-1, 0, -1):
+            # delta update is from A2 task 1a
             if self.use_improved_sigmoid:
                 delta = dimproved_sigmoid(
                     self.hidden_layer_output[i])*(delta@self.ws[i+1].T)
@@ -172,6 +174,7 @@ class SoftmaxModel:
             self.grads[i] = self.hidden_layer_output[i-1].T@delta/batch_size
 
         # First layer:
+        # (This could probably be incorporated into the loop..)
         if self.use_improved_sigmoid:
             delta = dimproved_sigmoid(
                 self.hidden_layer_output[0])*(delta@self.ws[1].T)
