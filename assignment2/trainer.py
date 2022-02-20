@@ -1,6 +1,14 @@
 import numpy as np
 import utils
 
+#sol
+def should_early_stop(validation_loss: dict, num_steps=10): #sol
+    losses = list(validation_loss.values()) #sol
+    relevant = losses[-(num_steps+1):]#sol
+    if len(relevant) < num_steps:#sol
+        return#sol
+    return min(relevant) == relevant[0] #sol
+
 
 class BaseTrainer:
 
@@ -89,16 +97,9 @@ class BaseTrainer:
                     train_history["accuracy"][global_step] = accuracy_train
                     val_history["loss"][global_step] = val_loss
                     val_history["accuracy"][global_step] = accuracy_val
-                    if (val_loss < min_loss):
-                        # We have found a better loss
-                        # i.e. the loss has improved
-                        times_not_improving = 0
-                        min_loss = val_loss
-                    else:
-                        # Loss is not improving:
-                        times_not_improving += 1
-                        if times_not_improving >= 50:
-                            print("Early stopping at epoch number " + str(epoch))
-                            return train_history, val_history
+
+                    if should_early_stop(val_history["loss"], num_steps=50): #sol
+                        print("early stop at:", epoch) #sol
+                        return train_history, val_history #sol
                 global_step += 1
         return train_history, val_history

@@ -17,11 +17,14 @@ def calculate_accuracy(X: np.ndarray, targets: np.ndarray, model: SoftmaxModel) 
     """
     predictions = model.forward(X)
 
-    chosen_class = np.zeros_like(predictions)
-    chosen_class[np.arange(len(predictions)), predictions.argmax(1)] = 1
-    correct = np.count_nonzero(targets == chosen_class)
-    accuracy = correct / (targets.shape[0]*targets.shape[1])
+    # Copied from solutions to avoid follow-through mistakes
+    accuracy = 0.0
+    logits = model.forward(X) #sol
+    preds = logits >= .5 #sol
+    num_correct = (targets.squeeze() == preds.squeeze()).sum() #sol
+    accuracy = num_correct / X.shape[0] #sol
     return accuracy
+
 
 
 

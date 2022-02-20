@@ -14,7 +14,7 @@ def pre_process_images(X: np.ndarray, mean=33.55274553571429, std=78.87550070784
     assert X.shape[1] == 784,\
         f"X.shape[1]: {X.shape[1]}, should be 784"
 
-    X = (X-mean)/std
+    X = (X.astype(float)-mean)/std
 
     # bias trick
     bias = np.ones((X.shape[0], 1))
@@ -35,8 +35,8 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
 
-    loss = -np.average(np.sum(targets*np.log(outputs), axis=1))
-    return loss
+    ce = targets * np.log(outputs) #sol
+    return -ce.sum(axis=1).mean() #sol
     raise NotImplementedError
 
 
@@ -208,13 +208,9 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
     Returns:
         Y: shape [Num examples, num classes]
     """
-    encoded = np.zeros((Y.shape[0], num_classes))
-    for i in range(Y.shape[0]):
-        assert Y[i][0] < num_classes,\
-            f"Integer at i={i} is {Y[i][0]} and exceeds num_classes ({num_classes})"
-        encoded[i][Y[i][0]] = 1
-
-    return encoded
+    Y_oh = np.zeros((Y.shape[0], num_classes))  #sol
+    Y_oh[range(len(Y)), Y.squeeze()] = 1  #sol
+    return Y_oh  #sol
     raise NotImplementedError
 
 
