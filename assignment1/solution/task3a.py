@@ -13,22 +13,23 @@ def cross_entropy_loss(targets: np.ndarray, outputs: np.ndarray):
         Cross entropy error (float)
     """
     # TODO implement this function (Task 3a)
-
     assert targets.shape == outputs.shape,\
         f"Targets shape: {targets.shape}, outputs: {outputs.shape}"
-    sumr= np.sum(targets*np.log(outputs), axis=1)
-    loss = -np.average(np.sum(targets*np.log(outputs), axis=1))
-    return loss
+    ce = targets * np.log(outputs) #sol
+    return -ce.sum(axis=1).mean() #sol
+    raise NotImplementedError
 
 
 class SoftmaxModel:
 
     def __init__(self, l2_reg_lambda: float):
         # Define number of input nodes
-        self.I = 785
+        self.I = None
 
         # Define number of output nodes
-        self.num_outputs = 10
+        self.num_outputs = None
+        self.num_outputs = 10 #sol
+        self.I = 785 #sol
         self.w = np.zeros((self.I, self.num_outputs))
         self.grad = None
 
@@ -41,22 +42,13 @@ class SoftmaxModel:
         Returns:
             y: output of model with shape [batch size, num_outputs]
         """
-        # (Task 3a)
-
-        # Some dimensions thinking:
-        # w = [785, num_outputs]
-        # X = [batch size, 785]
-        # X*w = [batch_size, 785]*[785, num_outputs] = [batch size, num_outputs]
-
-        z = X@self.w
-        denominator = np.exp(z).sum(axis=1)[np.newaxis, :].T  # [batch_size, 1]
-        numerator = np.exp(z) # [batch size, num_outputs]
-        res = numerator/denominator # Elementwise numerator[batch,:]/denominator[batch]
-
-        assert np.sum(res, axis=1).all()==1,\
-            f"Sum of softmax is not 1"
-        
-        return res
+        # TODO implement this function (Task 3a)
+        z = X.dot(self.w) #sol
+        # softmax #sol
+        exp = np.exp(z) #sol
+        a = exp / exp.sum(axis=1, keepdims=True) #sol
+        return a #sol
+        return None
 
     def backward(self, X: np.ndarray, outputs: np.ndarray, targets: np.ndarray) -> None:
         """
@@ -67,20 +59,17 @@ class SoftmaxModel:
             outputs: outputs of model of shape: [batch size, num_outputs]
             targets: labels/targets of each image of shape: [batch size, num_classes]
         """
-        # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda
+        # TODO implement this function (Task 3a)
+        # To implement L2 regularization task (4b) you can get the lambda value in self.l2_reg_lambda 
         # which is defined in the constructor.
-
         assert targets.shape == outputs.shape,\
             f"Output shape: {outputs.shape}, targets: {targets.shape}"
+        grad = -X.T.dot((targets-outputs)) / X.shape[0] #sol
+        grad = grad + self.l2_reg_lambda * self.w #sol
         self.grad = np.zeros_like(self.w)
-        # (Task 3a)
-        # dc_dw = [batch size, 785]*[batch_size, num_outputs]
-        # result should be [785, num_outputs]
-        dc_dw = -X.T@(targets-outputs) / X.shape[0]
-        self.grad = dc_dw
-
+        self.grad = grad  #sol
         assert self.grad.shape == self.w.shape,\
-            f"Grad shape: {self.grad.shape}, w: {self.w.shape}"
+             f"Grad shape: {self.grad.shape}, w: {self.w.shape}"
 
     def zero_grad(self) -> None:
         self.grad = None
@@ -94,15 +83,10 @@ def one_hot_encode(Y: np.ndarray, num_classes: int):
     Returns:
         Y: shape [Num examples, num classes]
     """
-    # (Task 3a)
-    encoded = np.zeros((Y.shape[0], num_classes))
-    for i in range(Y.shape[0]):
-        assert Y[i][0] < num_classes,\
-            f"Integer at i={i} is {Y[i][0]} and exceeds num_classes ({num_classes})"
-        encoded[i][Y[i][0]] = 1
-
-    return encoded
-
+    # TODO implement this function (Task 3a)
+    Y_oh = np.zeros((Y.shape[0], num_classes))  #sol
+    Y_oh[range(len(Y)), Y.squeeze()] = 1  #sol
+    return Y_oh  #sol
     raise NotImplementedError
 
 
@@ -111,8 +95,7 @@ def gradient_approximation_test(model: SoftmaxModel, X: np.ndarray, Y: np.ndarra
         Numerical approximation for gradients. Should not be edited. 
         Details about this test is given in the appendix in the assignment.
     """
-    w_orig = np.random.normal(
-        loc=0, scale=1/model.w.shape[0]**2, size=model.w.shape)
+    w_orig = np.random.normal(loc=0, scale=1/model.w.shape[0]**2, size=model.w.shape)
 
     epsilon = 1e-3
     for i in range(model.w.shape[0]):
