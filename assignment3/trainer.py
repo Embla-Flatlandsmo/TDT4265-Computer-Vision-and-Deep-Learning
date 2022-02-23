@@ -4,7 +4,24 @@ import time
 import collections
 import utils
 import pathlib
+import numpy as np
 
+
+# def calculate_accuracy(outputs: np.ndarray, targets: np.ndarray) -> float:
+#     """
+#     Args:
+#         X: images of shape [batch size, 785]
+#         targets: labels/targets of each image of shape: [batch size, 10]
+#         model: model of class SoftmaxModel
+#     Returns:
+#         Accuracy (float)
+#     """
+#     # Copied from solutions to avoid follow-through mistakes
+#     accuracy = 0.0
+#     preds = outputs >= .5 #sol
+#     num_correct = (targets.squeeze() == preds.squeeze()).sum() #sol
+#     accuracy = num_correct / outputs.shape[0] #sol
+#     return accuracy
 
 def compute_loss_and_accuracy(
         dataloader: torch.utils.data.DataLoader,
@@ -23,16 +40,26 @@ def compute_loss_and_accuracy(
     average_loss = 0
     accuracy = 0
     # TODO: Implement this function (Task  2a)
+    num_samples = 0
+    num_batches = 0
     with torch.no_grad():
         for (X_batch, Y_batch) in dataloader:
+            num_samples += X_batch.shape[0]
+            num_batches += 1
             # Transfer images/labels to GPU VRAM, if possible
             X_batch = utils.to_cuda(X_batch)
             Y_batch = utils.to_cuda(Y_batch)
             # Forward pass the images through our model
             output_probs = model(X_batch)
 
+            # Accuracy
+            accuracy += (output_probs.argmax(dim=1)==Y_batch).sum().item()
+            # acc += (Y_batch == mdl(x).max(1).item() / true.size(0)
+            # accuracy = accuracy + calculate_accuracy(output_probs, Y_batch)
             # Compute Loss and Accuracy
-
+            average_loss += loss_criterion(output_probs, Y_batch).item()
+    average_loss /= num_batches
+    accuracy /= num_samples
     return average_loss, accuracy
 
 
