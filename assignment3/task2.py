@@ -112,7 +112,8 @@ def create_plots(trainer: Trainer, name: str):
     plt.title("Accuracy")
     utils.plot_loss(trainer.validation_history["accuracy"], label="Validation Accuracy")
     plt.legend()
-    plt.savefig(plot_path.joinpath(f"{name}_plot.png"))
+    plt.margins(0,0)
+    plt.savefig(plot_path.joinpath(f"{name}_plot.png"), transparent = True, bbox_inches='tight', pad_inches=0.0)
     plt.show()
 
 
