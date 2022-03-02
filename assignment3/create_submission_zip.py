@@ -22,6 +22,11 @@ def query(question, options):
 files_to_include = {
     "task2": [".py"],
     "task2_train": [".ipynb"],
+    "task3": [".py"],
+    "task3_apple_train": [".ipynb"],
+    "task3_banana_train": [".ipynb"],
+    "task3_final_train": [".ipynb"],
+    "task4_model_train": [".ipynb"],
     "task4b": [".py"],
     "trainer": [".py"],
     "utils": [".py"],
