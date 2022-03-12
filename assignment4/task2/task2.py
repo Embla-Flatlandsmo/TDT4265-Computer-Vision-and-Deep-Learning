@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tools import read_predicted_boxes, read_ground_truth_boxes
 
-def calculate_box_area(box):
+def calculate_box_area(box) -> float:
     """Calculate the area of a box"
     
     Args:
@@ -12,7 +12,7 @@ def calculate_box_area(box):
         returns:
             float: area of the box
     """
-    return (box[2]-box[0])*(box[3]-box[1])
+    return (max(0.0, box[2]-box[0]))*(max(0.0, box[3]-box[1]))
 
 
 def calculate_iou(prediction_box, gt_box):
@@ -36,16 +36,12 @@ def calculate_iou(prediction_box, gt_box):
         min(prediction_box[2], gt_box[2]), #xmax
         min(prediction_box[3], gt_box[3])  #ymax
     ]
-    if intersection_box[0] > intersection_box[2] or intersection_box[1] > intersection_box[3]:
-        return 0
     intersection_area = calculate_box_area(intersection_box)
-    # if (intersection_area < 0):
-    #     return 0
 
     # Compute union
     # A ∪ B = A + B - A ∩ B
     union_area = calculate_box_area(prediction_box)+calculate_box_area(gt_box)-intersection_area
-    iou = intersection_area/union_area
+    iou = float(intersection_area)/float(union_area)
     assert iou >= 0 and iou <= 1
     return iou
 
@@ -62,7 +58,8 @@ def calculate_precision(num_tp, num_fp, num_fn):
         float: value of precision
     """
     # Task 2b
-    return 0 if num_tp+num_fp == 0 else num_tp / (num_tp+num_fp)
+    return (num_tp/(num_tp + num_fp)) if (num_tp + num_fp) else 1
+    return 1 if num_tp+num_fp == 0 else num_tp / (num_tp+num_fp)
 
 
     raise NotImplementedError
@@ -78,10 +75,13 @@ def calculate_recall(num_tp, num_fp, num_fn):
     Returns:
         float: value of recall
     """
+
+    return (num_tp/(num_tp + num_fn)) if (num_tp + num_fp) else 0
+
     return 0 if num_tp+num_fn == 0 else num_tp / (num_tp+num_fn)
     raise NotImplementedError
 
-
+# THIS IS THE PROBLEM!!!!
 def get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold):
     """Finds all possible matches for the predicted boxes to the ground truth boxes.
         No bounding box can have more than one match.
@@ -102,8 +102,12 @@ def get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold):
             objects with shape: [number of box matches, 4].
             Each row includes [xmin, ymin, xmax, ymax]
     """
+
+    # Find all possible matches with a IoU >= iou threshold
+
     # potential_matches contains [pred_box_idx, gt_box_idx, iou]
     potential_matches = np.empty([0,3])
+    # potential_matches = np.array([])
     first = True
 
     # Find all possible matches with a IoU >= iou threshold
@@ -114,41 +118,36 @@ def get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold):
                 if (first):
                     potential_matches = np.insert(potential_matches, 0, [pred_box_idx, gt_box_idx, iou], axis=0)
                     first = False
-                potential_matches = np.insert(potential_matches, -1, [pred_box_idx, gt_box_idx, iou], axis=0)
-                # potential_matches.append([pred_box_idx, gt_box_idx, iou])
-
+                else:
+                    potential_matches = np.insert(potential_matches, -1, [pred_box_idx, gt_box_idx, iou], axis=0)
 
     # Sort all matches on IoU in descending order
-    sorted_matches = np.sort(potential_matches, axis=0) # defaults to sorting on last axis
+    # sorted_matches = np.sort(potential_matches, axis=0) # defaults to sorting on last axis
+    sorted_matches = potential_matches[potential_matches[:,2].argsort()] #Sort on iou
     sorted_matches = sorted_matches[::-1] # reverse the list
-
-    # Find all matches with the highest IoU threshold
-    
-    # Create a list of length number_of_ground_truth_boxes.
-    # The list contains the index of the best pred_box match.
-    # Iterate through potential matches until all entries in the list are filled.
-    # Then, remove the entries in the list containing -1
-    max_matches = np.empty(gt_boxes.shape[0], dtype=int)
-    max_matches[:] = -1
 
     num_matched_gt_boxes = 0
     i = 0
+
+    # Apparently, a python dictionary works as a hash map.
+    # If key doesn't exist, insert with key-value {gt_box_match_idx: pred_match_idx}
+    
+    max_matches = {}
     while (num_matched_gt_boxes < gt_boxes.shape[0] and i < sorted_matches.shape[0]):
         gt_box_match_idx = int(sorted_matches[i,1])
-        if max_matches[gt_box_match_idx] == -1:
-            max_matches[gt_box_match_idx] = sorted_matches[i,0]
+        if gt_box_match_idx not in max_matches:
+            max_matches[gt_box_match_idx] = int(sorted_matches[i,0])
             num_matched_gt_boxes += 1
         i += 1
-    
+
     if num_matched_gt_boxes == 0:
         return np.array([]), np.array([])
 
-    gt_box_matches = np.where(max_matches != -1)[0].tolist()
-    max_matches = max_matches[~np.all(max_matches == -1)][0].tolist()
-    return ([prediction_boxes[i] for i in max_matches], [gt_boxes[i] for i in gt_box_matches])
-    # return np.take(prediction_boxes, max_matches, axis=0), np.take(gt_boxes, max_matches, axis=0)
+    fin_pred = [prediction_boxes[value] for value in max_matches.values()]
+    fin_gt = [gt_boxes[key] for key in max_matches.keys()]
 
-
+    return fin_pred, fin_gt
+   
 
 def calculate_individual_image_result(prediction_boxes, gt_boxes, iou_threshold):
     """Given a set of prediction boxes and ground truth boxes,
