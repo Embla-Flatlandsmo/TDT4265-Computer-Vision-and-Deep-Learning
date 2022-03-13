@@ -1,8 +1,8 @@
-import torch
+# import torch
+from torch import nn
 from typing import Tuple, List
 
-
-class BasicModel(torch.nn.Module):
+class BasicModel(nn.Module):
     """
     This is a basic backbone for SSD.
     The feature extractor outputs a list of 6 feature maps, with the sizes:
@@ -21,6 +21,94 @@ class BasicModel(torch.nn.Module):
         self.out_channels = output_channels
         self.output_feature_shape = output_feature_sizes
 
+
+        self.feature_extractor = nn.Sequential(
+            # Block 1
+            nn.Conv2d(image_channels, 32, 3, 1, 1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+
+            nn.Conv2d(32, 64, 3, 1, 1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+
+            nn.Conv2d(64, 64, 3, 1, 1),
+            nn.ReLU(),
+
+            nn.Conv2d(64, output_channels[0], 3, 2, 1),
+            nn.ReLU(),
+        )
+
+        self.additional_layers = nn.ModuleList([
+            # Block 2
+            nn.Sequential(
+                nn.ReLU(),
+                nn.Conv2d(output_channels[0], 128, 3, 1, 1),
+                nn.ReLU(),
+                nn.Conv2d(128, output_channels[1], 3, 2, 1),
+                nn.ReLU()
+            ),
+            # Block 3
+            nn.Sequential(
+                nn.ReLU(),
+                nn.Conv2d(output_channels[1], 256, 3, 1, 1),
+                nn.ReLU(),
+                nn.Conv2d(256, output_channels[2], 3, 2, 1),
+                nn.ReLU(),
+            ),
+            # Block 4
+            nn.Sequential(
+                nn.ReLU(),
+                nn.Conv2d(output_channels[2], 128, 3, 1, 1),
+                nn.ReLU(),
+                nn.Conv2d(128, output_channels[3], 3, 2, 1),
+                nn.ReLU(),
+            ),
+            # Block 5
+            nn.Sequential(
+                nn.ReLU(),
+                nn.Conv2d(output_channels[3], 128, 3, 1, 1),
+                nn.ReLU(),
+                nn.Conv2d(128, output_channels[4], 3, 2, 1),
+                nn.ReLU(),
+            ),
+            # Block 6
+            nn.Sequential(
+                nn.ReLU(),
+                nn.Conv2d(output_channels[4], 128, 3, 1, 1),
+                nn.ReLU(),
+                nn.Conv2d(128, output_channels[5], 3, 1, 0),
+                nn.ReLU(),
+            )
+        ])
+
+
+            # Block 3
+
+
+            # Block 4
+            # nn.ReLU(),
+            # nn.Conv2d(output_channels[2], 128, 3, 1, 1),
+            # nn.ReLU(),
+            # nn.Conv2d(128, output_channels[3], 3, 2, 1),
+            # nn.ReLU(),
+
+            # Block 5
+            # nn.ReLU(),
+            # nn.Conv2d(output_channels[3], 128, 3, 1, 1),
+            # nn.ReLU(),
+            # nn.Conv2d(128, output_channels[4], 3, 2, 1),
+            # nn.ReLU(),
+
+            # Block 6
+            # nn.ReLU(),
+            # nn.Conv2d(output_channels[4], 128, 3, 1, 1),
+            # nn.ReLU(),
+            # nn.Conv2d(128, output_channels[5], 3, 1, 0),
+            # nn.ReLU(),
+        # )
+
+        print(self)
     def forward(self, x):
         """
         The forward functiom should output features with shape:
@@ -35,6 +123,17 @@ class BasicModel(torch.nn.Module):
             shape(-1, output_channels[0], 38, 38),
         """
         out_features = []
+        out = self.feature_extractor(x)
+        out_features.append(out)
+
+        for l in range(len(self.additional_layers)):
+            out = self.additional_layers[l](out)
+            out_features.append(out)
+
+        # out1 = self.additional_layers[0](out0)
+        # out2 = se
+
+
         for idx, feature in enumerate(out_features):
             out_channel = self.out_channels[idx]
             h, w = self.output_feature_shape[idx]
@@ -44,4 +143,3 @@ class BasicModel(torch.nn.Module):
         assert len(out_features) == len(self.output_feature_shape),\
             f"Expected that the length of the outputted features to be: {len(self.output_feature_shape)}, but it was: {len(out_features)}"
         return tuple(out_features)
-
