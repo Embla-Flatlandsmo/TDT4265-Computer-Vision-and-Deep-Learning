@@ -16,7 +16,7 @@ train = dict(
     log_interval=20,
     seed=0,
     epochs=33,
-    _output_dir=pathlib.Path("outputs/task4c11"),
+    _output_dir=pathlib.Path("outputs/task4c13-long"),
     imshape=(300, 300),
     image_channels=3
 )
@@ -48,7 +48,7 @@ model = L(SSD300)(
     num_classes=10+1 # Add 1 for background
 )
 
-optimizer = L(torch.optim.Adam)(lr=2.6e-3)
+optimizer = L(torch.optim.Adam)()
 
 
 schedulers = dict(
