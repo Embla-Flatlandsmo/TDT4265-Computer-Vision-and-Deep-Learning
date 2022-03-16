@@ -8,6 +8,7 @@ from ssd import utils
 from ssd.data.transforms import  Normalize, ToTensor, GroundTruthBoxesToAnchors
 from ssd.data.mnist import MNISTDetectionDataset
 from .utils import get_dataset_dir, get_output_dir
+import pathlib
 
 train = dict(
     batch_size=32,
@@ -15,7 +16,7 @@ train = dict(
     log_interval=20,
     seed=0,
     epochs=19,
-    _output_dir=get_output_dir(),
+    _output_dir=pathlib.Path("outputs/task4c7"),
     imshape=(300, 300),
     image_channels=3
 )
@@ -29,7 +30,7 @@ anchors = L(AnchorBoxes)(
     # aspect ratio is used to define two boxes per element in the list. 
     # if ratio=[2], boxes will be created with ratio 1:2 and 2:1
     # Number of boxes per location is in total 2 + 2 per aspect ratio
-    aspect_ratios=[[2], [2, 3], [2, 3], [2, 3], [2], [2]],
+    aspect_ratios=[[2], [2, 2], [2, 2], [2, 2], [2], [2]],
     image_shape="${train.imshape}",
     scale_center_variance=0.1,
     scale_size_variance=0.2
@@ -49,7 +50,7 @@ model = L(SSD300)(
 
 optimizer = L(torch.optim.SGD)(
     # Tip: Scale the learning rate by batch size! 2.6e-3 is set for a batch size of 32. use 2*2.6e-3 if you use 64
-    lr=5e-3, momentum=0.9, weight_decay=0.0005
+    lr=2.6e-3, momentum=0.9, weight_decay=0.0005
 )
 schedulers = dict(
     linear=L(LinearLR)(start_factor=0.1, end_factor=1, total_iters=500),

@@ -8,6 +8,7 @@ from ssd import utils
 from ssd.data.transforms import  Normalize, ToTensor, GroundTruthBoxesToAnchors
 from ssd.data.mnist import MNISTDetectionDataset
 from .utils import get_dataset_dir, get_output_dir
+import pathlib
 
 train = dict(
     batch_size=32,
@@ -15,7 +16,7 @@ train = dict(
     log_interval=20,
     seed=0,
     epochs=19,
-    _output_dir=get_output_dir(),
+    _output_dir=pathlib.Path("outputs/task4c6"),
     imshape=(300, 300),
     image_channels=3
 )

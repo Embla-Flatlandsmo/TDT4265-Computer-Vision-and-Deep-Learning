@@ -21,21 +21,32 @@ class BasicModel(nn.Module):
         self.out_channels = output_channels
         self.output_feature_shape = output_feature_sizes
 
+        filter_size = 3
+        padding = 1
+        stride=1
 
         self.feature_extractor = nn.Sequential(
             # Block 1
-            nn.Conv2d(image_channels, 32, 3, 1, 1),
+            nn.Conv2d(image_channels, 32, filter_size, 1, padding),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
 
-            nn.Conv2d(32, 64, 3, 1, 1),
+            nn.Conv2d(32, 64, filter_size, 1, padding),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
 
-            nn.Conv2d(64, 64, 3, 1, 1),
+            nn.Conv2d(64, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
 
-            nn.Conv2d(64, output_channels[0], 3, 2, 1),
+            nn.Conv2d(128, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+
+            nn.Conv2d(64, output_channels[0], filter_size, 2, padding),
+            nn.BatchNorm2d(output_channels[0]),
             nn.ReLU(),
         )
 
@@ -43,41 +54,63 @@ class BasicModel(nn.Module):
             # Block 2
             nn.Sequential(
                 nn.ReLU(),
-                nn.Conv2d(output_channels[0], 128, 3, 1, 1),
+                nn.Conv2d(output_channels[0], 128, filter_size, 1, padding),
+                nn.BatchNorm2d(128),
                 nn.ReLU(),
-                nn.Conv2d(128, output_channels[1], 3, 2, 1),
+                nn.Conv2d(128, output_channels[1], filter_size, 2, padding),
+                nn.BatchNorm2d(output_channels[1]),
                 nn.ReLU()
             ),
             # Block 3
             nn.Sequential(
                 nn.ReLU(),
-                nn.Conv2d(output_channels[1], 256, 3, 1, 1),
+                nn.Conv2d(output_channels[1], 256, filter_size, 1, padding),
+                nn.BatchNorm2d(256),
                 nn.ReLU(),
-                nn.Conv2d(256, output_channels[2], 3, 2, 1),
+                # nn.Conv2d(256, 256, filter_size, 1, padding),
+                # nn.BatchNorm2d(256),
+                # nn.ReLU(),
+                nn.Conv2d(256, output_channels[2], filter_size, 2, padding),
+                nn.BatchNorm2d(output_channels[2]),
                 nn.ReLU(),
             ),
             # Block 4
             nn.Sequential(
                 nn.ReLU(),
-                nn.Conv2d(output_channels[2], 128, 3, 1, 1),
+                nn.Conv2d(output_channels[2], 128, filter_size, 1, padding),
+                nn.BatchNorm2d(128),
                 nn.ReLU(),
-                nn.Conv2d(128, output_channels[3], 3, 2, 1),
+                # nn.Conv2d(128, 128, filter_size, 1, padding),
+                # nn.BatchNorm2d(128),
+                # nn.ReLU(),
+                nn.Conv2d(128, output_channels[3], filter_size, 2, padding),
+                nn.BatchNorm2d(output_channels[3]),
                 nn.ReLU(),
             ),
             # Block 5
             nn.Sequential(
                 nn.ReLU(),
-                nn.Conv2d(output_channels[3], 128, 3, 1, 1),
+                nn.Conv2d(output_channels[3], 128, filter_size, 1, padding),
+                nn.BatchNorm2d(128),
                 nn.ReLU(),
-                nn.Conv2d(128, output_channels[4], 3, 2, 1),
+                # nn.Conv2d(128, 128, filter_size, 1, padding),
+                # nn.BatchNorm2d(128),
+                # nn.ReLU(),
+                nn.Conv2d(128, output_channels[4], filter_size, 2, padding),
+                nn.BatchNorm2d(output_channels[4]),
                 nn.ReLU(),
             ),
             # Block 6
             nn.Sequential(
                 nn.ReLU(),
-                nn.Conv2d(output_channels[4], 128, 3, 1, 1),
+                nn.Conv2d(output_channels[4], 128, filter_size, 1, padding),
+                nn.BatchNorm2d(128),
                 nn.ReLU(),
-                nn.Conv2d(128, output_channels[5], 3, 1, 0),
+                # nn.Conv2d(128, 128, filter_size, 1, padding),
+                # nn.BatchNorm2d(128),
+                # nn.ReLU(),
+                nn.Conv2d(128, output_channels[5], filter_size, 1, 0),
+                nn.BatchNorm2d(output_channels[5]),
                 nn.ReLU(),
             )
         ])
@@ -129,10 +162,6 @@ class BasicModel(nn.Module):
         for l in range(len(self.additional_layers)):
             out = self.additional_layers[l](out)
             out_features.append(out)
-
-        # out1 = self.additional_layers[0](out0)
-        # out2 = se
-
 
         for idx, feature in enumerate(out_features):
             out_channel = self.out_channels[idx]
