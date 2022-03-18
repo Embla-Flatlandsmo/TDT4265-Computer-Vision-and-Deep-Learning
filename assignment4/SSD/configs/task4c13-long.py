@@ -15,7 +15,7 @@ train = dict(
     amp=True, # Automatic mixed precision
     log_interval=20,
     seed=0,
-    epochs=33,
+    epochs=32,
     _output_dir=pathlib.Path("outputs/task4c13-long"),
     imshape=(300, 300),
     image_channels=3
@@ -68,7 +68,7 @@ data_train=dict(
         ])
     ),
     dataloader=L(torch.utils.data.DataLoader)(
-        dataset="${..dataset}", num_workers=4, pin_memory=True, shuffle=True, batch_size="${...train.batch_size}", collate_fn=utils.batch_collate,
+        dataset="${..dataset}", num_workers=0, pin_memory=True, shuffle=True, batch_size="${...train.batch_size}", collate_fn=utils.batch_collate,
         drop_last=True
     ),
     # GPU transforms can heavily speedup data augmentations.
@@ -85,7 +85,7 @@ data_val=dict(
         ])
     ),
     dataloader=L(torch.utils.data.DataLoader)(
-       dataset="${..dataset}", num_workers=4, pin_memory=True, shuffle=False, batch_size="${...train.batch_size}", collate_fn=utils.batch_collate_val
+       dataset="${..dataset}", num_workers=0, pin_memory=True, shuffle=False, batch_size="${...train.batch_size}", collate_fn=utils.batch_collate_val
     ),
     gpu_transform=L(torchvision.transforms.Compose)(transforms=[
         L(Normalize)(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
