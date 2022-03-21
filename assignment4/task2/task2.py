@@ -59,8 +59,6 @@ def calculate_precision(num_tp, num_fp, num_fn):
     """
     # Task 2b
     return (num_tp/(num_tp + num_fp)) if (num_tp + num_fp) else 1
-    return 1 if num_tp+num_fp == 0 else num_tp / (num_tp+num_fp)
-
 
     raise NotImplementedError
 
@@ -77,11 +75,9 @@ def calculate_recall(num_tp, num_fp, num_fn):
     """
 
     return (num_tp/(num_tp + num_fn)) if (num_tp + num_fp) else 0
-
-    return 0 if num_tp+num_fn == 0 else num_tp / (num_tp+num_fn)
     raise NotImplementedError
 
-# THIS IS THE PROBLEM!!!!
+
 def get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold):
     """Finds all possible matches for the predicted boxes to the ground truth boxes.
         No bounding box can have more than one match.
@@ -173,30 +169,6 @@ def calculate_individual_image_result(prediction_boxes, gt_boxes, iou_threshold)
 
     false_negatives = len(gt_boxes)-true_positives
 
-
-    # Find number of matches over the threshold (total number of positives)
-    # num_positives = 0
-    # for pred_box in prediction_boxes:
-    #     for gt_box in gt_boxes:
-    #         iou = calculate_iou(pred_box, gt_box)
-    #         if (iou >= iou_threshold):
-    #             num_positives += 1
-
-    # true_positives = len(pred_box_matches)
-    # false_positives = num_positives-true_positives
-
-    # num_predictions = len(prediction_boxes)
-    # num_negatives = num_predictions-num_positives
-    # true_negatives = num_predictions-true_positives
-    # false_negatives = num_negatives-true_negatives
-
-    # true_positives = pred_box_matches.shape[0]
-    # false_positives = prediction_boxes.shape[0]-true_positives
-
-    # false_negatives = gt_boxes.shape[0] - true_positives
-    # true_negatives = 
-    # true_negatives = num_negatives-pred_box_matches.shape[0]
-    # false_negatives = num_negatives-true_negatives
     return {"true_pos": true_positives, "false_pos": false_positives, "false_neg": false_negatives}
     raise NotImplementedError
 
@@ -264,13 +236,9 @@ def get_precision_recall_curve(
     # curve, we will use an approximation
     confidence_thresholds = np.linspace(0, 1, 500)
 
-    # YOUR CODE HERE
-
     precisions = [] 
     recalls = []
 
-
-    num_images = all_prediction_boxes
     for thresh_idx in range(len(confidence_thresholds)):
         # Prediction boxes for all images for the current threshold.
         # threshold_predictions[i] holds all the prediction boxes for image i
@@ -329,29 +297,29 @@ def calculate_mean_average_precision(precisions, recalls):
         float: mean average precision
     """
     # Calculate the mean average precision given these recall levels.
-    recall_levels = np.linspace(0, 1.0, 11)
-    # YOUR CODE HERE
-    precisions_max_sum = 0
+    recall_levels = np.linspace(0, 1.0, 11)    # DO NOT CHANGE THIS LINE
+    
+    # For each recall level, we sum over
+    # the max precision (AP section of 
+    # https://jonathan-hui.medium.com/map-mean-average-precision-for-object-detection-45c121a31173)
+    max_precision_cumsum = 0
 
-    for lvl in range(len(recall_levels)):
-        precision_max = 0
+    for recall_level in recall_levels:
+        max_precision = 0
+        #TODO: Can this be done with numpy?
+        # the following gives an exception:
+        # max_precision = np.amax(precisions[np.argwhere(recalls >= recall_level)])
 
-        for n in range(recalls.shape[0]):
-    	    if (precisions[n] > precision_max) and (recalls[n] >= recall_levels[lvl]):
-                precision_max = precisions[n]
+        # We check all the levels to the right of our current level
+        for j in range(recalls.shape[0]):
+            if (recalls[j] >= recall_level) and (max_precision < precisions[j]):
+                # Precision level to our right is higher than our current precision level
 
-        precisions_max_sum += precision_max
+                max_precision = precisions[j]
+                
+        max_precision_cumsum += max_precision
 
-    average_precision = precisions_max_sum / float(len(recall_levels))
-
-    return average_precision
-
-
-
-
-    average_precision = 0
-    return average_precision
-
+    return float(max_precision_cumsum) / float(len(recall_levels))
 
 def mean_average_precision(ground_truth_boxes, predicted_boxes):
     """ Calculates the mean average precision over the given dataset

@@ -20,4 +20,5 @@ data/mnist_object_detection
 data/original_mnist
 outputs/
 data/VOCdevkit
+data/VOC.zip
 notebooks/data
